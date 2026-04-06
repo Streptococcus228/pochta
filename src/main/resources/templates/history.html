@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Мои отправления — Почта</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f4f7f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 6px 30px rgba(0,0,0,0.12);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        h1 {
+            color: #0066cc;
+            margin: 0;
+            font-size: 28px;
+        }
+        .btn-create {
+            background: linear-gradient(135deg, #0066cc, #0088ff);
+            color: white;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
+        }
+        .btn-create:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
+            background: linear-gradient(135deg, #0055aa, #0077ee);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+        th, td {
+            padding: 15px 12px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: linear-gradient(135deg, #0066cc, #0088ff);
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        tr:hover {
+            background: #f8fbff;
+        }
+        .status {
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 13.5px;
+            display: inline-block;
+            min-width: 110px;
+        }
+        .CREATED     { background: #fff3cd; color: #856404; }
+        .IN_TRANSIT  { background: #d1ecf1; color: #0c5460; }
+        .DELIVERED   { background: #d4edda; color: #155724; }
+        .FAILED      { background: #f8d7da; color: #721c24; }
+
+        .progress-bar-container {
+            width: 100%;
+            background: #f0f0f0;
+            border-radius: 9999px;
+            height: 26px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #0066cc, #00aaff);
+            color: white;
+            text-align: center;
+            line-height: 26px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: width 0.8s ease;
+        }
+        .vehicle {
+            font-weight: 700;
+            color: #0066cc;
+            background: #e3f2fd;
+            padding: 5px 12px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .cost {
+            font-weight: 700;
+            color: #0066cc;
+            font-size: 15px;
+        }
+        .delete-btn {
+            color: #dc3545;
+            cursor: pointer;
+            font-size: 21px;
+            transition: all 0.2s;
+        }
+        .delete-btn:hover {
+            color: #b71c1c;
+            transform: scale(1.25);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📬 Мои отправления</h1>
+        <a href="/create" class="btn-create">
+            <span style="font-size:20px;">+</span> Создать новую посылку
+        </a>
+    </div>
+
+    <table id="historyTable">
+        <thead>
+        <tr>
+            <th>ID посылки</th>
+            <th>Откуда</th>
+            <th>Куда</th>
+            <th>Вес</th>
+            <th>Стоимость</th>
+            <th>Статус</th>
+            <th>Машина</th>
+            <th>Прогресс</th>
+            <th>Дата создания</th>
+            <th>Действия</th>
+        </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+</div>
+
+<script>
+    async function loadHistory() {
+        const tbody = document.getElementById('tableBody');
+
+        try {
+            const response = await fetch('/api/history', { cache: 'no-cache' });
+            const parcels = await response.json();
+
+            let html = '';
+            parcels.forEach(p => {
+                const canDelete = (p.status === 'DELIVERED' || p.status === 'FAILED');
+
+                const date = new Date(p.createdAt);
+                date.setHours(date.getHours() + 3);
+
+                const formattedDate = date.toLocaleString('ru-RU', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                html += `
+                    <tr>
+                        <td><strong>${p.parcelNumber}</strong></td>
+                        <td>${p.fromBranch}</td>
+                        <td>${p.toBranch}</td>
+                        <td>${p.weight} кг</td>
+                        <td class="cost">${p.cost.toFixed(2)} грн</td>
+                        <td><span class="status ${p.status}">${p.status}</span></td>
+                        <td>${p.vehicleId ? `<span class="vehicle">${p.vehicleId}</span>` : '—'}</td>
+                        <td>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" style="width: ${p.progress}%">${p.progress}%</div>
+                            </div>
+                        </td>
+                        <td>${formattedDate}</td>
+                        <td>
+                            ${canDelete ? `<span onclick="deleteParcel(${p.id})" class="delete-btn">🗑</span>` : ''}
+                        </td>
+                    </tr>`;
+            });
+
+            if (parcels.length === 0) {
+                html = `<tr><td colspan="10" style="padding:80px; color:#666; text-align:center; font-size:18px;">
+                            У вас пока нет отправлений
+                        </td></tr>`;
+            }
+
+            tbody.innerHTML = html;
+
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="10" style="color:red; padding:60px; text-align:center;">
+                Ошибка загрузки данных
+            </td></tr>`;
+        }
+    }
+
+    function deleteParcel(id) {
+        if (confirm('Удалить эту посылку из истории?')) {
+            fetch('/parcels/delete/' + id, { method: 'POST' })
+                .then(() => loadHistory());
+        }
+    }
+
+    setInterval(loadHistory, 3000);
+    loadHistory();
+</script>
+</body>
+</html>

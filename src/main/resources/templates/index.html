@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Почта — Главная</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f4f7f9;
+            margin: 0;
+            padding: 40px;
+        }
+        .container {
+            max-width: 720px;
+            margin: auto;
+            background: white;
+            padding: 60px 50px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+            text-align: center;
+        }
+        h1 {
+            color: #0066cc;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        p {
+            color: #555;
+            font-size: 18px;
+            margin-bottom: 35px;
+        }
+
+        /* Красивая универсальная кнопка */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #0066cc, #0088ff);
+            color: white;
+            padding: 16px 32px;
+            border: none;
+            border-radius: 50px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            margin: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 102, 204, 0.3);
+            min-width: 220px;
+        }
+
+        .btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 102, 204, 0.4);
+            background: linear-gradient(135deg, #0055aa, #0077ee);
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        /* Зелёная кнопка для "Мои отправления" */
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #34c759);
+        }
+        .btn-success:hover {
+            background: linear-gradient(135deg, #218838, #2ba850);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🚚 Добро пожаловать в Почту</h1>
+    <p th:if="${currentUser}" th:text="'Привет, ' + ${currentUser.fullName} + '!'"></p>
+
+    <div th:if="${currentUser}">
+        <a href="/create" class="btn">📦 Создать новую посылку</a>
+        <a href="/history" class="btn btn-success">📬 Мои отправления</a>
+    </div>
+
+    <div th:unless="${currentUser}">
+        <a href="/login" class="btn">🔑 Войти в аккаунт</a>
+        <a href="/register" class="btn">📝 Регистрация</a>
+    </div>
+</div>
+</body>
+</html>
