@@ -16,12 +16,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/login", "/register").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .defaultSuccessUrl("/create", true)
-                        .permitAll()
+                        .anyRequest().permitAll()
                 )
                 .logout(logout -> logout
                         .logoutSuccessUrl("/")
