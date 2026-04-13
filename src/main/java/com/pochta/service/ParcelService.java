@@ -53,7 +53,7 @@ public class ParcelService {
     }
 
     /**
-     * Получить все посылки пользователя для истории (используем DTO, чтобы избежать ошибок с lazy loading)
+     * Получить все посылки пользователя для истории
      */
     public List<ParcelHistoryDto> getParcelsHistoryByUserId(Long userId) {
         return parcelRepository.findByUserIdOrderByCreatedAtDesc(userId)
@@ -78,5 +78,15 @@ public class ParcelService {
      */
     public void deleteParcel(Long parcelId) {
         parcelRepository.deleteById(parcelId);
+    }
+
+    // Получить все посылки (для админа)
+    public List<Parcel> getAllParcels() {
+        return parcelRepository.findAll();
+    }
+
+    // Сброс всех посылок (для тестирования)
+    public void resetAllParcels() {
+        parcelRepository.deleteAll();
     }
 }

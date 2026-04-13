@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Админ-панель — Почта</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f7f9; margin: 0; padding: 20px; }
+        .container { max-width: 1450px; margin: auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 6px 30px rgba(0,0,0,0.12); }
+        h1 { color: #0066cc; text-align: center; }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            flex: 1;
+            min-width: 220px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 14px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #0066cc;
+            color: white;
+        }
+        tr:hover { background: #f0f8ff; }
+
+        .reset-btn {
+            padding: 12px 30px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            float: right;
+        }
+        .reset-btn:hover { background: #c82333; }
+
+        .refresh-info {
+            text-align: right;
+            color: #666;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🔧 Админ-панель</h1>
+
+    <div class="stats">
+        <div class="stat-card">
+            <h3>Всего посылок</h3>
+            <h2 th:text="${totalParcels} ?: 0"></h2>
+        </div>
+        <div class="stat-card">
+            <h3>В пути</h3>
+            <h2 th:text="${inTransitCount} ?: 0"></h2>
+        </div>
+        <div class="stat-card">
+            <h3>Доставлено</h3>
+            <h2 th:text="${deliveredCount} ?: 0"></h2>
+        </div>
+    </div>
+
+    <div class="refresh-info">
+        Автообновление каждые 5 секунд • Последнее: <span id="lastUpdate"></span>
+    </div>
+
+    <button onclick="if(confirm('Сбросить все посылки?')) location.href='/admin/reset'" class="reset-btn">
+        Сбросить все посылки
+    </button>
+
+    <table>
+        <thead>
+        <tr>
+            <th>ID посылки</th>
+            <th>Пользователь</th>
+            <th>Маршрут</th>
+            <th>Вес</th>
+            <th>Стоимость</th>
+            <th>Статус</th>
+            <th>Машина</th>
+            <th>Прогресс</th>
+            <th>Создано</th>
+            <th>Доставлено</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="p : ${parcels}">
+            <td><strong th:text="${p.parcelNumber}"></strong></td>
+            <!-- Самое безопасное обращение к пользователю -->
+            <td th:text="${p.user != null ? p.user.fullName : '—'}"></td>
+            <td th:text="${p.fromBranch} + ' → ' + ${p.toBranch}"></td>
+            <td th:text="${p.weight} + ' кг'"></td>
+            <td th:text="${p.cost != null ? p.cost + ' грн' : '—'}"></td>
+            <td th:text="${p.status}"></td>
+            <td th:text="${p.vehicleId} ?: '—'"></td>
+            <td th:text="${p.progress} + '%'"></td>
+            <td th:text="${#temporals.format(p.createdAt, 'dd.MM.yyyy HH:mm')}"></td>
+            <td th:text="${p.status.name() == 'DELIVERED' ?
+                    (#temporals.format(p.updatedAt != null ? p.updatedAt : p.createdAt, 'dd.MM.yyyy HH:mm')) : '—'}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <p style="text-align:center; margin-top:40px; color:#666;">
+        <a href="/">← Вернуться на главную</a>
+    </p>
+</div>
+
+<script>
+    setInterval(() => location.reload(), 5000);
+
+    function showLastUpdate() {
+        const now = new Date();
+        document.getElementById('lastUpdate').textContent =
+            now.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    }
+    showLastUpdate();
+</script>
+</body>
+</html>

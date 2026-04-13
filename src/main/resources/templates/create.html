@@ -54,7 +54,7 @@
             color: #0066cc;
         }
 
-        /* Основная кнопка (Рассчитать и оплатить) */
+        /* Основная кнопка */
         .btn-primary {
             width: 100%;
             padding: 15px 30px;
@@ -72,10 +72,9 @@
         .btn-primary:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 25px rgba(0, 102, 204, 0.4);
-            background: linear-gradient(135deg, #0055aa, #0077ee);
         }
 
-        /* Кнопка оплаты внутри формы */
+        /* Кнопка оплаты */
         .btn-pay {
             width: 100%;
             padding: 15px 30px;
@@ -110,6 +109,25 @@
         }
         .btn-secondary:hover {
             background: #5a6268;
+        }
+
+        /* Новая кнопка "Мои посылки" */
+        .btn-history {
+            width: 100%;
+            padding: 14px 30px;
+            background: linear-gradient(135deg, #28a745, #34c759);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+        .btn-history:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
         }
 
         .payment-form {
@@ -162,6 +180,9 @@
         </button>
     </form>
 
+    <!-- Кнопка "Мои посылки" -->
+    <a href="/history" class="btn-history">📬 Мои посылки</a>
+
     <!-- Форма оплаты -->
     <div class="payment-form" id="paymentForm">
         <h2>💳 Оплата доставки</h2>
@@ -185,7 +206,6 @@
 </div>
 
 <script>
-    // ... (твой JavaScript остаётся без изменений)
     let currentCost = 0;
 
     function updatePrice() {
@@ -197,8 +217,11 @@
             fetch(`/api/calculate-price?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&weight=${weight}`)
                 .then(r => r.json())
                 .then(data => {
-                    currentCost = data.cost;
+                    currentCost = data.cost || 0;
                     document.getElementById('priceDisplay').textContent = currentCost.toFixed(2);
+                })
+                .catch(() => {
+                    document.getElementById('priceDisplay').textContent = "0.00";
                 });
         }
     }
