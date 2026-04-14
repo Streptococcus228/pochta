@@ -1,4 +1,5 @@
 package com.pochta.model;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -30,6 +31,9 @@ public class User {
 
     @Column(unique = true, length = 100)
     private String email;
+
+    @Column(nullable = false)
+    private String role = "USER";
 
     @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)

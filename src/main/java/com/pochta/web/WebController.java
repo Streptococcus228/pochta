@@ -44,10 +44,15 @@ public class WebController {
                         HttpSession session) {
 
         var userOpt = authService.login(username, password);
+
         if (userOpt.isPresent()) {
-            session.setAttribute("currentUser", userOpt.get());
-            return "redirect:/create";
+            User user = userOpt.get();
+            session.setAttribute("currentUser", user);
+
+            // Важливо! Перекидаємо на спеціальний редирект
+            return "redirect:/redirectAfterLogin";
         }
+
         return "redirect:/login?error=true";
     }
 

@@ -15,13 +15,11 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login", "/register").permitAll()
-                        .anyRequest().permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")   // тільки адмін може в адмінку
+                        .anyRequest().permitAll()                        // все інше — без обмежень
                 )
-                .logout(logout -> logout
-                        .logoutSuccessUrl("/")
-                        .permitAll()
-                );
+                .formLogin(form -> form.disable())   // вимикаємо стандартний логін Spring Security
+                .httpBasic(httpBasic -> httpBasic.disable());
 
         return http.build();
     }

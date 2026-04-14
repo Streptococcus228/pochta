@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8"> //
+    <meta charset="UTF-8">
     <title>Админ-панель — Почта</title>
     <style>
         body { font-family: Arial, sans-serif; background: #f4f7f9; margin: 0; padding: 20px; }
@@ -98,14 +98,13 @@
             <th>Машина</th>
             <th>Прогресс</th>
             <th>Создано</th>
-            <th>Доставлено</th>
         </tr>
         </thead>
         <tbody>
         <tr th:each="p : ${parcels}">
             <td><strong th:text="${p.parcelNumber}"></strong></td>
-            <!-- Самое безопасное обращение к пользователю -->
-            <td th:text="${p.user != null ? p.user.fullName : '—'}"></td>
+            <!-- Безопасное отображение пользователя -->
+            <td th:text="${p.user != null ? p.user.fullName : '— (без пользователя)'}"></td>
             <td th:text="${p.fromBranch} + ' → ' + ${p.toBranch}"></td>
             <td th:text="${p.weight} + ' кг'"></td>
             <td th:text="${p.cost != null ? p.cost + ' грн' : '—'}"></td>
@@ -113,8 +112,6 @@
             <td th:text="${p.vehicleId} ?: '—'"></td>
             <td th:text="${p.progress} + '%'"></td>
             <td th:text="${#temporals.format(p.createdAt, 'dd.MM.yyyy HH:mm')}"></td>
-            <td th:text="${p.status.name() == 'DELIVERED' ?
-                    (#temporals.format(p.updatedAt != null ? p.updatedAt : p.createdAt, 'dd.MM.yyyy HH:mm')) : '—'}"></td>
         </tr>
         </tbody>
     </table>
@@ -125,6 +122,7 @@
 </div>
 
 <script>
+    // Автообновление каждые 5 секунд
     setInterval(() => location.reload(), 5000);
 
     function showLastUpdate() {
