@@ -1,5 +1,6 @@
 package com.pochta.service;
 
+import com.pochta.dto.ParcelAdminDto;
 import com.pochta.dto.ParcelHistoryDto;
 import com.pochta.model.Parcel;
 import com.pochta.model.ParcelStatus;
@@ -88,5 +89,26 @@ public class ParcelService {
     // Сброс всех посылок (для тестирования)
     public void resetAllParcels() {
         parcelRepository.deleteAll();
+    }
+
+    /**
+     * Для адмін-панелі — повертає всі посылки з іменем користувача (без Lazy проблем)
+     */
+    public List<ParcelAdminDto> getAllParcelsForAdmin() {
+        return parcelRepository.findAll().stream()
+                .map(p -> new ParcelAdminDto(
+                        p.getId(),
+                        p.getParcelNumber(),
+                        p.getFromBranch(),
+                        p.getToBranch(),
+                        p.getWeight(),
+                        p.getCost(),
+                        p.getStatus().name(),
+                        p.getVehicleId(),
+                        p.getProgress(),
+                        p.getCreatedAt(),
+                        (p.getUser() != null) ? p.getUser().getFullName() : "— (без користувача)"
+                ))
+                .toList();
     }
 }
