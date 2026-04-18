@@ -82,7 +82,8 @@
         Автообновление каждые 5 секунд • Последнее: <span id="lastUpdate"></span>
     </div>
 
-    <button onclick="if(confirm('Сбросить все посылки?')) location.href='/admin/reset'" class="reset-btn">
+    <form th:action="@{/admin/reset}" method="post" id="resetForm" style="display:none;"></form>
+    <button onclick="if(confirm('Сбросить все посылки?')) document.getElementById('resetForm').submit()" class="reset-btn">
         Сбросить все посылки
     </button>
 
@@ -104,13 +105,13 @@
         <tr th:each="p : ${parcels}">
             <td><strong th:text="${p.parcelNumber}"></strong></td>
             <td th:text="${p.userFullName} ?: '—'"></td>
-            <td th:text="${p.fromBranch} + ' → ' + ${p.toBranch}"></td>
+            <td th:text="${(p.fromBranch != null ? p.fromBranch : '-') + ' → ' + (p.toBranch != null ? p.toBranch : '-')}"></td>
             <td th:text="${p.weight} + ' кг'"></td>
             <td th:text="${p.cost} + ' грн'"></td>
             <td th:text="${p.status}"></td>
             <td th:text="${p.vehicleId} ?: '—'"></td>
             <td th:text="${p.progress} + '%'"></td>
-            <td th:text="${#temporals.format(p.createdAt, 'dd.MM.yyyy HH:mm')}"></td>
+            <td th:text="${p.createdAt != null ? #temporals.format(p.createdAt, 'dd.MM.yyyy HH:mm') : '-'}"></td>
         </tr>
         </tbody>
     </table>

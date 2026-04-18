@@ -103,11 +103,13 @@ public class ParcelService {
                         p.getToBranch(),
                         p.getWeight(),
                         p.getCost(),
-                        p.getStatus().name(),
+                        (p.getStatus() != null ? p.getStatus().name() : "UNKNOWN"), // 🔥 FIX
                         p.getVehicleId(),
                         p.getProgress(),
                         p.getCreatedAt(),
-                        (p.getUser() != null) ? p.getUser().getFullName() : "— (без користувача)"
+                        (p.getUser() != null && p.getUser().getFullName() != null)
+                                ? p.getUser().getFullName()
+                                : "—"
                 ))
                 .toList();
     }
