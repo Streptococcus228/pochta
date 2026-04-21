@@ -13,4 +13,8 @@ public interface ParcelRepository extends JpaRepository<Parcel, Long> {
 
     @EntityGraph(attributePaths = {"user"})
     List<Parcel> findAll();
+
+    @EntityGraph(attributePaths = {"user"})
+    List<Parcel> findByParcelNumberContainingIgnoreCase(String parcelNumber);
+    List<Parcel> findByFromBranchAndToBranchAndStatus(String from, String to, com.pochta.model.ParcelStatus status);
 }

@@ -1,88 +1,162 @@
 <!DOCTYPE html>
-<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Почта — Главная</title>
+    <title>Пошта — Головна</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #f4f7f9;
-            margin: 0;
-            padding: 40px;
-        }
-        .container {
-            max-width: 720px;
-            margin: auto;
-            background: white;
-            padding: 60px 50px;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.12);
-            text-align: center;
-        }
-        h1 {
-            color: #0066cc;
-            margin-bottom: 10px;
-            font-size: 32px;
-        }
-        p {
-            color: #555;
-            font-size: 18px;
-            margin-bottom: 35px;
+        :root {
+            --primary: #0052cc;
+            --primary-hover: #0047b3;
+            --success: #36b37e;
+            --success-hover: #2d9669;
+            --bg: #f4f5f7;
+            --text: #172b4d;
+            --text-muted: #6b778c;
         }
 
-        /* Красивая универсальная кнопка */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background-image: url('/images/background.png');
+            background-size: cover;
+            background-position: center;
+            filter: blur(8px) brightness(0.8);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            padding: 48px;
+            border-radius: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            margin: 20px;
+        }
+
+        .logo {
+            font-size: 64px;
+            margin-bottom: 24px;
+            display: block;
+        }
+
+        h1 {
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            font-size: 42px;
+            font-weight: 800;
+            margin: 0 0 12px 0;
+            letter-spacing: -0.5px;
+        }
+
+        p {
+            color: rgba(255,255,255,0.9);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            font-size: 18px;
+            margin-bottom: 40px;
+            line-height: 1.5;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
         .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            background: linear-gradient(135deg, #0066cc, #0088ff);
-            color: white;
             padding: 16px 32px;
-            border: none;
-            border-radius: 50px;
-            font-size: 17px;
+            border-radius: 12px;
+            font-size: 16px;
             font-weight: 600;
-            cursor: pointer;
             text-decoration: none;
-            margin: 8px;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0, 102, 204, 0.3);
-            min-width: 220px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            border: none;
         }
 
-        .btn:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px rgba(0, 102, 204, 0.4);
-            background: linear-gradient(135deg, #0055aa, #0077ee);
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 82, 204, 0.2);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 82, 204, 0.3);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+            box-shadow: 0 4px 12px rgba(54, 179, 126, 0.2);
+        }
+
+        .btn-success:hover {
+            background-color: var(--success-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(54, 179, 126, 0.3);
         }
 
         .btn:active {
-            transform: scale(0.96);
+            transform: translateY(0);
         }
 
-        /* Зелёная кнопка для "Мои отправления" */
-        .btn-success {
-            background: linear-gradient(135deg, #28a745, #34c759);
-        }
-        .btn-success:hover {
-            background: linear-gradient(135deg, #218838, #2ba850);
+        .welcome-msg {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 12px 20px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-bottom: 24px;
+            font-weight: 600;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>🚚 Добро пожаловать в Почту</h1>
-    <p th:if="${currentUser}" th:text="'Привет, ' + ${currentUser.fullName} + '!'"></p>
+    <h1>Пошта Симулятор</h1>
+    
+    <div th:if="${currentUser}" class="welcome-msg">
+        Вітаємо, <span th:text="${currentUser.fullName}"></span>!
+    </div>
+    
+    <p th:unless="${currentUser}">Керуйте вашими відправленнями легко та швидко. Доставка майбутнього вже тут!</p>
 
-    <div th:if="${currentUser}">
-        <a href="/create" class="btn">📦 Создать новую посылку</a>
-        <a href="/history" class="btn btn-success">📬 Мои отправления</a>
+    <div class="button-group" th:if="${currentUser}">
+        <a href="/create" class="btn btn-primary">Створити нову посилку</a>
+        <a href="/history" class="btn btn-success">Мої відправлення</a>
+        <a href="/admin" class="btn" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);">Панель керування</a>
     </div>
 
-    <div th:unless="${currentUser}">
-        <a href="/login" class="btn">🔑 Войти в аккаунт</a>
-        <a href="/register" class="btn">📝 Регистрация</a>
+    <div class="button-group" th:unless="${currentUser}">
+        <a href="/login" class="btn btn-primary">Увійти в акаунт</a>
+        <a href="/register" class="btn btn-success">Реєстрація</a>
     </div>
 </div>
 </body>

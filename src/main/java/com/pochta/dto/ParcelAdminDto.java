@@ -17,6 +17,7 @@ public class ParcelAdminDto {
     private double cost;
     private String status;
     private String vehicleId;
+    private String tripId;
     private int progress;
     private LocalDateTime createdAt;
     private String userFullName;

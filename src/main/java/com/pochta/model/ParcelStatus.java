@@ -1,10 +1,10 @@
 package com.pochta.model;
 
 public enum ParcelStatus {
-    CREATED,      // только создана
-    QUEUED,       // ← добавили: в очереди на машину
-    PAID,
-    IN_TRANSIT,
-    DELIVERED,
-    FAILED
+    CREATED,      // щойно створена
+    QUEUED,       // у черзі на відправлення
+    PAID,         // оплачено
+    IN_TRANSIT,   // в дорозі
+    DELIVERED,    // доставлено
+    FAILED        // помилка доставки
 }

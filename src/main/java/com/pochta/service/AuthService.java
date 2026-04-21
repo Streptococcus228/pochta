@@ -56,11 +56,11 @@ public class AuthService {
                     .build();
 
             userRepository.save(admin);
-            System.out.println("✅ Адміністратор успішно створений!");
+            System.out.println("Адміністратор успішно створений!");
             System.out.println("   Логін: admin");
             System.out.println("   Пароль: admin123");
         } else {
-            System.out.println("✅ Адміністратор вже існує в базі");
+            System.out.println("Адміністратор вже існує в базі");
         }
     }
 }

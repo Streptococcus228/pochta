@@ -5,21 +5,14 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 @Service
+@lombok.RequiredArgsConstructor
 public class PricingService {
 
-    // Примерные расстояния между отделениями (в км)
-    private final Map<String, Integer> distances = Map.of(
-            "Одесса-Центр", 0,
-            "Киев-Главпочтамт", 480,
-            "Львов-1", 350,
-            "Харьков-Север", 700,
-            "Днепр-Юг", 400
-    );
+    private final BranchService branchService;
 
     public double calculateCost(String fromBranch, String toBranch, double weight) {
         int distance = Math.abs(
-                distances.getOrDefault(fromBranch, 400) -
-                        distances.getOrDefault(toBranch, 400)
+                getDistance(fromBranch) - getDistance(toBranch)
         );
 
         // Формула: базовый тариф + вес
@@ -29,5 +22,10 @@ public class PricingService {
         if (cost < 50) cost = 50;
 
         return Math.round(cost * 100.0) / 100.0; // до копеек
+    }
+
+    private int getDistance(String cityName) {
+        var branch = branchService.getBranchByName(cityName);
+        return branch != null ? branch.getDistance() : 400;
     }
 }

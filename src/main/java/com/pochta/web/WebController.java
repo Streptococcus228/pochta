@@ -3,9 +3,12 @@ package com.pochta.web;
 import com.pochta.dto.ParcelHistoryDto;
 import com.pochta.model.User;
 import com.pochta.service.AuthService;
+import com.pochta.service.BranchService;
 import com.pochta.service.ParcelService;
 import com.pochta.service.PricingService;
 import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,14 +19,18 @@ import java.util.Map;
 @Controller
 public class WebController {
 
+    private static final Logger log = LoggerFactory.getLogger(WebController.class);
+
     private final AuthService authService;
     private final ParcelService parcelService;
     private final PricingService pricingService;
+    private final BranchService branchService;
 
-    public WebController(AuthService authService, ParcelService parcelService, PricingService pricingService) {
+    public WebController(AuthService authService, ParcelService parcelService, PricingService pricingService, BranchService branchService) {
         this.authService = authService;
         this.parcelService = parcelService;
         this.pricingService = pricingService;
+        this.branchService = branchService;
     }
 
     @GetMapping("/")
@@ -81,6 +88,7 @@ public class WebController {
         User user = (User) session.getAttribute("currentUser");
         if (user == null) return "redirect:/login";
         model.addAttribute("currentUser", user);
+        model.addAttribute("branches", branchService.getAllBranches());
         return "create";
     }
 
@@ -98,13 +106,22 @@ public class WebController {
 
     @GetMapping("/history")
     public String historyPage(HttpSession session, Model model) {
+        log.info("Accessing /history page");
         User user = (User) session.getAttribute("currentUser");
-        if (user == null) return "redirect:/login";
+        if (user == null) {
+            log.warn("User not found in session, redirecting to login");
+            return "redirect:/login";
+        }
 
-        var parcels = parcelService.getParcelsHistoryByUserId(user.getId());
-        model.addAttribute("currentUser", user);
-        model.addAttribute("parcels", parcels);
-        return "history";
+        try {
+            model.addAttribute("currentUser", user);
+            model.addAttribute("branches", branchService.getAllBranches());
+            log.info("History page loaded successfully for user: {}", user.getUsername());
+            return "history";
+        } catch (Exception e) {
+            log.error("Error loading history page for user: {}", user.getUsername(), e);
+            return "redirect:/?error=history";
+        }
     }
 
     @GetMapping("/api/history")

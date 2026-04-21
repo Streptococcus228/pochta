@@ -24,7 +24,7 @@ public class AuthController {
                 request.getFullName(), request.getEmail());
 
         if (user == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Пользователь с таким логином уже существует"));
+            return ResponseEntity.badRequest().body(Map.of("error", "Користувач з таким логіном вже існує"));
         }
 
         // Сохраняем пользователя в сессию
@@ -32,10 +32,10 @@ public class AuthController {
         session.setAttribute("userId", user.getId());
 
         return ResponseEntity.ok(Map.of(
-                "message", "Регистрация успешна!",
-                "userId", user.getId(),
-                "username", user.getUsername(),
-                "fullName", user.getFullName()
+            "message", "Реєстрація успішна!",
+            "userId", user.getId(),
+            "username", user.getUsername(),
+            "fullName", user.getFullName()
         ));
     }
 
@@ -44,7 +44,7 @@ public class AuthController {
         var userOpt = authService.login(request.getUsername(), request.getPassword());
 
         if (userOpt.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Неверный логин или пароль"));
+            return ResponseEntity.badRequest().body(Map.of("error", "Невірний логін або пароль"));
         }
 
         User user = userOpt.get();
@@ -54,10 +54,10 @@ public class AuthController {
         session.setAttribute("userId", user.getId());
 
         return ResponseEntity.ok(Map.of(
-                "message", "Вход выполнен успешно!",
-                "userId", user.getId(),
-                "username", user.getUsername(),
-                "fullName", user.getFullName()
+            "message", "Вхід виконано успішно!",
+            "userId", user.getId(),
+            "username", user.getUsername(),
+            "fullName", user.getFullName()
         ));
     }
 }

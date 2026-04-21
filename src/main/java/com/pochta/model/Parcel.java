@@ -42,9 +42,14 @@ public class Parcel {
     private ParcelStatus status = ParcelStatus.CREATED;
 
     private String vehicleId;
+    private String tripId;
 
+    @Column(nullable = false)
     private int progress = 0;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean deletedByUser = false;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt = LocalDateTime.now(java.time.ZoneId.of("Europe/Kyiv"));
 }
