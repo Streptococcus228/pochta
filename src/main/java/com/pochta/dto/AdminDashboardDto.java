@@ -36,6 +36,7 @@ public class AdminDashboardDto {
         private String status; // FREE / BUSY
         private String currentTripId;
         private List<String> parcelNumbers;
+        private List<String> route;
         private int progress;
     }
 }

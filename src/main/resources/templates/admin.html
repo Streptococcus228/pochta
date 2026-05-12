@@ -122,6 +122,23 @@
             padding: 16px;
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(5px);
+            transition: all 0.2s;
+        }
+
+        .vehicle-card.clickable {
+            cursor: pointer;
+            border-color: var(--primary);
+        }
+
+        .vehicle-card.clickable:hover {
+            box-shadow: 0 4px 12px rgba(0, 82, 204, 0.15);
+            transform: translateY(-2px);
+            background: white;
+        }
+
+        .vehicle-card.active-view {
+            border: 2px solid var(--primary);
+            box-shadow: 0 0 0 4px rgba(0, 82, 204, 0.1);
         }
 
         .progress-bar-bg { background: #ebecf0; height: 8px; border-radius: 4px; margin-top: 10px; overflow: hidden; }
@@ -171,6 +188,26 @@
         th { text-align: left; padding: 12px 16px; border-bottom: 2px solid var(--border); color: var(--text-muted); font-size: 12px; text-transform: uppercase; }
         td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 14px; }
         tr:hover { background: #f9f9fb; }
+
+        .btn-delete {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--danger);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .btn-delete:hover {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
 
         .trip-badge {
             font-family: monospace;
@@ -365,6 +402,7 @@
                                 <th>№</th>
                                 <th>Маршрут</th>
                                 <th>Вага</th>
+                                <th>Дії</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -373,9 +411,12 @@
                                 <td th:text="${p.parcelNumber}"></td>
                                 <td th:text="${p.fromBranch + ' → ' + p.toBranch}" style="font-size:12px;"></td>
                                 <td th:text="${p.weight} + ' кг'"></td>
+                                <td>
+                                    <button class="btn-delete" th:attr="onclick=|deleteParcel(${p.id})|" title="Видалити">✕</button>
+                                </td>
                             </tr>
                             <tr th:if="${createdParcels.isEmpty()}">
-                                <td colspan="4" style="text-align:center; padding: 40px; color: var(--text-muted);">
+                                <td colspan="5" style="text-align:center; padding: 40px; color: var(--text-muted);">
                                     Всі посилки відправлені або черга порожня
                                 </td>
                             </tr>
@@ -408,7 +449,11 @@
                 </div>
 
                 <div class="fleet-grid">
-                    <div th:each="v : ${stats.vehicles}" class="vehicle-card">
+                    <div th:each="v : ${stats.vehicles}" 
+                         class="vehicle-card"
+                         th:classappend="${v.status == 'BUSY' ? 'clickable' : ''}"
+                         th:data-vehicle-id="${v.vehicleId}"
+                         onclick="handleVehicleClick(this)">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                             <strong th:text="${v.vehicleId}"></strong>
                             <span th:class="'status-badge status-' + ${v.status}" 
@@ -453,7 +498,6 @@
         <table>
             <thead>
             <tr>
-                <th style="width:30px;"><input type="checkbox" onclick="toggleAll(this)"></th>
                 <th>№ Посилки</th>
                 <th>Користувач</th>
                 <th>Маршрут</th>
@@ -461,19 +505,19 @@
                 <th>Статус / Прогрес</th>
                 <th>Машина / Рейс (Trip)</th>
                 <th>Створено</th>
+                <th>Дії</th>
             </tr>
             </thead>
             <tbody>
             <tr th:each="p : ${parcels}" th:attr="data-id=${p.id}" style="cursor:pointer">
-                <td><span style="color:var(--text-muted); font-size:10px;">•</span></td>
-                <td th:attr="onclick=|showMap('${p.parcelNumber}', '${p.fromBranch}', '${p.toBranch}', ${p.progress})|"><strong th:text="${p.parcelNumber}"></strong></td>
-                <td th:text="${p.userFullName} ?: '—'" th:attr="onclick=|showMap('${p.parcelNumber}', '${p.fromBranch}', '${p.toBranch}', ${p.progress})|"></td>
-                <td th:text="${p.fromBranch + ' → ' + p.toBranch}" th:attr="onclick=|showMap('${p.parcelNumber}', '${p.fromBranch}', '${p.toBranch}', ${p.progress})|"></td>
-                <td th:attr="onclick=|showMap('${p.parcelNumber}', '${p.fromBranch}', '${p.toBranch}', ${p.progress})|">
+                <td th:attr="onclick=|handleParcelRowClick('${p.parcelNumber}', '${p.fromBranch}', '${p.toBranch}', ${p.progress}, '${p.status}', '${p.vehicleId}')|"><strong th:text="${p.parcelNumber}"></strong></td>
+                <td th:text="${p.userFullName} ?: '—'" th:attr="onclick=|handleParcelRowClick('${p.parcelNumber}', '${p.fromBranch}', '${p.toBranch}', ${p.progress}, '${p.status}', '${p.vehicleId}')|"></td>
+                <td th:text="${p.fromBranch + ' → ' + p.toBranch}" th:attr="onclick=|handleParcelRowClick('${p.parcelNumber}', '${p.fromBranch}', '${p.toBranch}', ${p.progress}, '${p.status}', '${p.vehicleId}')|"></td>
+                <td th:attr="onclick=|handleParcelRowClick('${p.parcelNumber}', '${p.fromBranch}', '${p.toBranch}', ${p.progress}, '${p.status}', '${p.vehicleId}')|">
                     <div th:text="${p.weight} + ' кг'"></div>
                     <div style="font-weight:700; color:var(--primary)" th:text="${p.cost} + ' грн'"></div>
                 </td>
-                <td th:attr="onclick=|showMap('${p.parcelNumber}', '${p.fromBranch}', '${p.toBranch}', ${p.progress})|">
+                <td th:attr="onclick=|handleParcelRowClick('${p.parcelNumber}', '${p.fromBranch}', '${p.toBranch}', ${p.progress}, '${p.status}', '${p.vehicleId}')|">
                     <div th:text="${p.status == 'CREATED' ? 'СТВОРЕНО' : 
                                  (p.status == 'QUEUED' ? 'В ЧЕРЗІ' : 
                                  (p.status == 'PAID' ? 'ОПЛАЧЕНО' : 
@@ -481,11 +525,14 @@
                                  (p.status == 'DELIVERED' ? 'ДОСТАВЛЕНО' : p.status))))}"></div>
                     <div style="font-size:12px; color:var(--text-muted)" th:text="${p.progress} + '%'"></div>
                 </td>
-                <td th:attr="onclick=|showMap('${p.parcelNumber}', '${p.fromBranch}', '${p.toBranch}', ${p.progress})|">
+                <td th:attr="onclick=|handleParcelRowClick('${p.parcelNumber}', '${p.fromBranch}', '${p.toBranch}', ${p.progress}, '${p.status}', '${p.vehicleId}')|">
                     <div th:text="${p.vehicleId} ?: '—'"></div>
                     <div class="trip-badge" th:if="${p.tripId}" th:text="${p.tripId}"></div>
                 </td>
-                <td th:text="${p.createdAt != null ? #temporals.format(p.createdAt, 'dd.MM HH:mm') : '-'}" th:attr="onclick=|showMap('${p.parcelNumber}', '${p.fromBranch}', '${p.toBranch}', ${p.progress})|"></td>
+                <td th:text="${p.createdAt != null ? #temporals.format(p.createdAt, 'dd.MM HH:mm') : '-'}" th:attr="onclick=|handleParcelRowClick('${p.parcelNumber}', '${p.fromBranch}', '${p.toBranch}', ${p.progress}, '${p.status}', '${p.vehicleId}')|"></td>
+                <td>
+                    <button class="btn-delete" th:attr="onclick=|event.stopPropagation();deleteParcel(${p.id})|" title="Видалити">✕</button>
+                </td>
             </tr>
             </tbody>
         </table>
@@ -516,6 +563,20 @@
         btn.style.background = isPaused ? "rgba(222, 53, 11, 0.6)" : "rgba(255, 255, 255, 0.2)";
     }
     updatePauseBtn();
+
+    function deleteParcel(id) {
+        if (!confirm('Ви впевнені, що хочете видалити цю посилку?')) return;
+        
+        fetch(`/api/parcels/${id}`, {
+            method: 'DELETE'
+        }).then(res => {
+            if (res.ok) {
+                location.reload();
+            } else {
+                alert('Помилка при видаленні');
+            }
+        });
+    }
 
     function togglePause() {
         isPaused = !isPaused;
@@ -658,6 +719,83 @@
     let currentMap = null;
     let currentCarMarker = null;
     let currentRouteControl = null;
+
+    function handleVehicleClick(element) {
+        const vehicleId = element.getAttribute('data-vehicle-id');
+        const vehicle = stats.vehicles.find(v => v.vehicleId === vehicleId);
+        if (vehicle && vehicle.status === 'BUSY') {
+            document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('active-view'));
+            element.classList.add('active-view');
+            showVehicleOnMap(vehicle);
+        }
+    }
+
+    function handleParcelRowClick(parcelNumber, from, to, progress, status, vehicleId) {
+        if (status === 'IN_TRANSIT' && vehicleId) {
+            const vehicle = stats.vehicles.find(v => v.vehicleId === vehicleId);
+            if (vehicle && vehicle.route && vehicle.route.length >= 2) {
+                showVehicleOnMap(vehicle);
+                return;
+            }
+        }
+        showMap(parcelNumber, from, to, progress);
+    }
+
+    function showVehicleOnMap(vehicle) {
+        document.getElementById('mapModal').style.display = 'block';
+        document.getElementById('modalParcelNumber').textContent = "Авто: " + vehicle.vehicleId + " (" + (vehicle.currentTripId || '...') + ")";
+
+        if (currentMap) currentMap.remove();
+
+        currentMap = L.map('map').setView([48.8, 31.5], 7);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(currentMap);
+
+        const coords = {};
+        /*[# th:if="${branches != null}"]*/
+        /*[# th:each="b : ${branches}"]*/
+        coords[ [[${b.name}]] ] = [ [[${b.latitude}]], [[${b.longitude}]] ];
+        /*[/]*/
+        /*[/]*/
+
+        if (!vehicle.route || vehicle.route.length < 2) {
+            console.error("No route for vehicle", vehicle);
+            return;
+        }
+
+        const waypoints = vehicle.route.map(stop => {
+            const c = coords[stop];
+            return c ? L.latLng(c[0], c[1]) : L.latLng(48.0, 31.0);
+        });
+
+        currentRouteControl = L.Routing.control({
+            waypoints: waypoints,
+            routeWhileDragging: false,
+            addWaypoints: false,
+            draggableWaypoints: false,
+            show: false,
+            lineOptions: { styles: [{color: '#ff9900', weight: 6, opacity: 0.7}] }
+        }).addTo(currentMap);
+
+        currentRouteControl.on('routesfound', function(e) {
+            const points = e.routes[0].coordinates;
+            const index = Math.floor((vehicle.progress / 100) * (points.length - 1));
+            const point = points[Math.min(index, points.length - 1)];
+            
+            if (currentCarMarker) currentMap.removeLayer(currentCarMarker);
+
+            currentCarMarker = L.marker([point.lat, point.lng], {
+                icon: L.divIcon({
+                    className: 'car-marker',
+                    html: '<div style="background:#ff9900; width:22px; height:22px; border-radius:50%; border:3px solid white; box-shadow:0 0 8px rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; color:white; font-size:10px; font-weight:bold;">' + vehicle.vehicleId.substring(1) + '</div>',
+                    iconSize: [22, 22],
+                    iconAnchor: [11, 11]
+                })
+            }).addTo(currentMap);
+            
+            currentCarMarker.bindPopup("<b>" + vehicle.vehicleId + "</b><br>Прогрес: " + vehicle.progress + "%").openPopup();
+            currentMap.panTo([point.lat, point.lng]);
+        });
+    }
 
     function showMap(parcelNumber, from, to, progress) {
         document.getElementById('mapModal').style.display = 'block';

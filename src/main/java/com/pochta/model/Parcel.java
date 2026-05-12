@@ -47,6 +47,9 @@ public class Parcel {
     @Column(nullable = false)
     private int progress = 0;
 
+    @Column(nullable = false, columnDefinition = "int default 0")
+    private int tripProgress = 0;
+
     @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean deletedByUser = false;
 

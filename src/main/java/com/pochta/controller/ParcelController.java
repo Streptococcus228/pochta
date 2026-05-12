@@ -49,6 +49,16 @@ public class ParcelController {
         }
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteParcel(@PathVariable Long id, HttpSession session) {
+        User currentUser = (User) session.getAttribute("currentUser");
+        if (currentUser == null || !"ADMIN".equalsIgnoreCase(currentUser.getRole())) {
+            return ResponseEntity.status(401).body(Map.of("error", "Недостатньо прав"));
+        }
+        parcelService.deleteParcel(id);
+        return ResponseEntity.ok(Map.of("message", "Посилку видалено"));
+    }
+
     // DTO
     public static class CreateParcelRequest {
         private String fromBranch;

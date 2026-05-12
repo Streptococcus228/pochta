@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -144,6 +146,8 @@ public class ParcelService {
         }
 
         return parcels.stream()
+                .filter(p -> !p.isDeletedByUser())
+                .sorted((p1, p2) -> p2.getId().compareTo(p1.getId()))
                 .map(this::convertToAdminDto)
                 .toList();
     }
@@ -159,7 +163,7 @@ public class ParcelService {
                 p.getStatus().name(),
                 p.getVehicleId(),
                 p.getTripId(),
-                p.getProgress(),
+                p.getStatus() == ParcelStatus.DELIVERED ? 100 : p.getProgress(),
                 p.getCreatedAt(),
                 (p.getUser() != null && p.getUser().getFullName() != null)
                         ? p.getUser().getFullName()
@@ -168,20 +172,47 @@ public class ParcelService {
     }
 
     public AdminDashboardDto getAdminDashboardStats() {
-        List<Parcel> allParcels = parcelRepository.findAll();
+        List<Parcel> allParcels = parcelRepository.findAll().stream()
+                .filter(p -> !p.isDeletedByUser())
+                .toList();
 
         double totalCost = allParcels.stream().mapToDouble(Parcel::getCost).sum();
         double avgDeliveryCost = allParcels.isEmpty() ? 0 : totalCost / allParcels.size();
 
-        // Затраты на бензин теперь считаем с меньшим коэффициентом
+        // Затраты на бензин учитывают мульти-рейсы
         double gasolineCosts = allParcels.stream()
                 .collect(Collectors.groupingBy(p -> p.getTripId() != null ? p.getTripId() : "SINGLE-" + p.getId()))
                 .values().stream()
                 .mapToDouble(tripParcels -> {
-                    Parcel p = tripParcels.get(0);
-                    return Math.abs(getDistance(p.getFromBranch()) - getDistance(p.getToBranch()));
+                    if (tripParcels.isEmpty()) return 0;
+                    
+                    // Якщо це одиночна посилка або автоматичний рейс (зазвичай 1 посилка)
+                    if (tripParcels.size() == 1) {
+                        Parcel p = tripParcels.get(0);
+                        return Math.abs(getDistance(p.getFromBranch()) - getDistance(p.getToBranch()));
+                    }
+                    
+                    // Для мульти-рейсу розраховуємо загальний шлях за алгоритмом найближчого сусіда
+                    String start = tripParcels.get(0).getFromBranch();
+                    Set<String> allStops = new java.util.HashSet<>();
+                    for (Parcel p : tripParcels) {
+                        allStops.add(p.getFromBranch());
+                        allStops.add(p.getToBranch());
+                    }
+                    allStops.remove(start);
+                    java.util.List<String> remainingStops = new java.util.ArrayList<>(allStops);
+                    
+                    double totalDist = 0;
+                    String curr = start;
+                    while (!remainingStops.isEmpty()) {
+                        String next = findClosest(curr, remainingStops);
+                        totalDist += Math.abs(getDistance(curr) - getDistance(next));
+                        remainingStops.remove(next);
+                        curr = next;
+                    }
+                    return totalDist;
                 })
-                .sum() * 1.2; // Было 5.0
+                .sum() * 1.2;
 
         // Популярные маршруты
         Map<String, Long> routeCounts = allParcels.stream()
@@ -211,6 +242,7 @@ public class ParcelService {
                     String status = busyVehicles.contains(v) ? "BUSY" : "FREE";
                     String currentTripId = null;
                     List<String> pNums = new java.util.ArrayList<>();
+                    List<String> route = new java.util.ArrayList<>();
                     int progress = 0;
 
                     if (status.equals("BUSY")) {
@@ -221,11 +253,36 @@ public class ParcelService {
                         if (!vehicleParcels.isEmpty()) {
                             String tripId = vehicleParcels.get(0).getTripId();
                             currentTripId = tripId;
-                            pNums = vehicleParcels.stream()
+                            List<Parcel> tripParcels = vehicleParcels.stream()
                                     .filter(p -> tripId != null && tripId.equals(p.getTripId()))
+                                    .toList();
+                            
+                            pNums = tripParcels.stream()
                                     .map(Parcel::getParcelNumber)
                                     .toList();
-                            progress = vehicleParcels.get(0).getProgress();
+                            progress = tripParcels.get(0).getTripProgress();
+
+                            // Построение маршрута для отображения
+                            if (!tripParcels.isEmpty()) {
+                                String start = tripParcels.get(0).getFromBranch();
+                                route.add(start);
+                                
+                                Set<String> allStops = new java.util.HashSet<>();
+                                for (Parcel p : tripParcels) {
+                                    allStops.add(p.getFromBranch());
+                                    allStops.add(p.getToBranch());
+                                }
+                                allStops.remove(start);
+                                
+                                List<String> remainingStops = new java.util.ArrayList<>(allStops);
+                                String curr = start;
+                                while (!remainingStops.isEmpty()) {
+                                    String next = findClosest(curr, remainingStops);
+                                    route.add(next);
+                                    remainingStops.remove(next);
+                                    curr = next;
+                                }
+                            }
                         }
                     }
 
@@ -234,6 +291,7 @@ public class ParcelService {
                             .status(status)
                             .currentTripId(currentTripId)
                             .parcelNumbers(pNums)
+                            .route(route)
                             .progress(progress)
                             .build();
                 })
@@ -305,5 +363,19 @@ public class ParcelService {
         int distance = Math.abs(getDistance(from) - getDistance(to));
         int time = 22 + (int) (distance * 0.085);
         return Math.max(25, Math.min(90, time));
+    }
+
+    private String findClosest(String current, java.util.List<String> candidates) {
+        String closest = null;
+        int minDistance = Integer.MAX_VALUE;
+        int currentDist = getDistance(current);
+        for (String cand : candidates) {
+            int d = Math.abs(currentDist - getDistance(cand));
+            if (d < minDistance) {
+                minDistance = d;
+                closest = cand;
+            }
+        }
+        return closest;
     }
 }
