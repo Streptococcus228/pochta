@@ -2,6 +2,8 @@ spring:
   application:
     name: pochta-simulator
 
+  jackson:
+    time-zone: Europe/Kyiv
   datasource:
     url: jdbc:postgresql://localhost:5433/pochta_db
     username: postgres
